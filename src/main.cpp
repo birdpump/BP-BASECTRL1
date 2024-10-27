@@ -55,10 +55,7 @@ void test_SD() {
 }
 
 void setup() {
-    // todo test radio
      sleep_ms(5000);
-
-
 }
 
 int main() {

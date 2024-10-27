@@ -56,9 +56,7 @@ void radioTask(void *pvParameters) {
         int16_t state = radio.readData(data, 0);
 
         if (state == RADIOLIB_ERR_NONE) {
-            printf("[SX1262] Received packet!\n");
-
-            std::cout << "Data as string: " << reinterpret_cast<char *>(data) << std::endl;
+            std::cout << "Data: " << reinterpret_cast<char *>(data) << std::endl;
 
             printf("[SX1262] RSSI:\t\t%.2f dBm\n", radio.getRSSI());
 
@@ -68,7 +66,7 @@ void radioTask(void *pvParameters) {
             printf("failed, code %d\n", state);
             return;
         }
-        vTaskDelay(pdMS_TO_TICKS(800));
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
 
 }
