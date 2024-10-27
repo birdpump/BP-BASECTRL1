@@ -2,6 +2,7 @@
 add_executable(${PROJECT_NAME}
         main.cpp
         tasks/led_task.cpp
+        tasks/radio_task.cpp
         utils/encode_data.cpp
         utils/telemetry_radio.cpp
         config/hw_config.cpp
@@ -36,7 +37,7 @@ pico_set_program_version(${PROJECT_NAME} "0.1")
 
 # Enable USB output, disable UART output
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
-pico_enable_stdio_uart(${PROJECT_NAME} 1)
+pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 # Create map/bin/hex/uf2 files
 pico_add_extra_outputs(${PROJECT_NAME})
