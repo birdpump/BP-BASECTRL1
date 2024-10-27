@@ -32,8 +32,6 @@ SX1262 radio = new Module(hal, RFM_NSS, RFM_DIO1, RFM_RST, RFM_DIO2);
 void radioTask(void *pvParameters) {
     printf("[SX1262] Initializing ... \n");
     int state = radio.begin();
-
-    printf("[SX1262] Initializing 2 ... \n");
     if (state != RADIOLIB_ERR_NONE) {
         printf("failed, code %d\n", state);
         return;
