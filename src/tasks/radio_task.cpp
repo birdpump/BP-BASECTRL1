@@ -31,7 +31,7 @@ SX1262 radio = new Module(hal, RFM_NSS, RFM_DIO1, RFM_RST, RFM_DIO2);
 
 void radioTask(void *pvParameters) {
     printf("[SX1262] Initializing ... \n");
-    int state = radio.begin();
+    int state = radio.begin(902.5, 125.0, 8, 5, 0x36, 22, 14);
     if (state != RADIOLIB_ERR_NONE) {
         printf("failed, code %d\n", state);
         return;
@@ -59,6 +59,9 @@ void radioTask(void *pvParameters) {
             printf("[SX1262] RSSI:\t\t%.2f dBm\n", radio.getRSSI());
 
             printf("[SX1262] SNR:\t\t%.2f dB\n", radio.getSNR());
+
+            printf("[SX1262] FreqErr:\t\t%.2f Hz\n", radio.getFrequencyError());
+
 
         } else {
             printf("failed, code %d\n", state);
