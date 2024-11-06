@@ -72,7 +72,7 @@ uint8_t calculateChecksum(const uint8_t *buffer, size_t length) {
 }
 
 
-void commandRadio(void *pvParameters) {
+void baseRadioRX(void *pvParameters) {
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
 
@@ -138,7 +138,7 @@ void commandRadio(void *pvParameters) {
 }
 
 
-void commandRadioTask(void *pvParameters) {
+void baseRadioTX(void *pvParameters) {
     for (;;) {
         if (xSemaphoreTake(xRadioMutex, portMAX_DELAY) == pdTRUE) {
             if (uart_is_readable(UART_ID)) {

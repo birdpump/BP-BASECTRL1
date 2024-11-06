@@ -75,12 +75,12 @@ int main() {
 
     setup();
 
-    if (xTaskCreate(commandRadioTask, "radioTask", 8192, NULL, 2, NULL) != pdPASS) {
+    if (xTaskCreate(baseRadioTX, "baseRadioTX", 8192, NULL, 2, NULL) != pdPASS) {
         printf("Failed to create Radio task\n");
         while (1);
     }
 
-    if (xTaskCreate(commandRadio, "radioTask", 8192, NULL, 1, NULL) != pdPASS) {
+    if (xTaskCreate(baseRadioRX, "baseRadioRX", 8192, NULL, 1, NULL) != pdPASS) {
         printf("Failed to create Radio task\n");
         while (1);
     }
