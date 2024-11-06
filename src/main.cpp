@@ -17,7 +17,7 @@
 #include "hw_config.h"
 
 #include "tasks/led_task.h"
-#include "tasks/radio_task.h"
+#include "tasks/radio_tasks.h"
 #include "utils/encode_data.h"
 //#include "utils/telemetry_radio.h"
 
@@ -44,7 +44,7 @@ void test_SD() {
 
     // Open a file and write to it
     FIL fil;
-    const char* const filename = "filename.txt";
+    const char *const filename = "filename.txt";
     fr = f_open(&fil, filename, FA_OPEN_APPEND | FA_WRITE);
     if (FR_OK != fr && FR_EXIST != fr) {
         panic("f_open(%s) error: %s (%d)\n", filename, FRESULT_str(fr), fr);
@@ -63,10 +63,11 @@ void test_SD() {
 }
 
 void setup() {
-     sleep_ms(5000);
+    sleep_ms(5000);
     uart_init(UART_ID, BAUD_RATE);
     gpio_set_function(TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(RX_PIN, GPIO_FUNC_UART);
+    initRadio();
 }
 
 int main() {
@@ -79,10 +80,15 @@ int main() {
         while (1);
     }
 
-    if (xTaskCreate(ledTask, "ledTask", 128, NULL, 1, NULL) != pdPASS) {
+    if (xTaskCreate(commandRadio, "radioTask", 8192, NULL, 1, NULL) != pdPASS) {
         printf("Failed to create Radio task\n");
         while (1);
     }
+
+    // if (xTaskCreate(ledTask, "ledTask", 128, NULL, 1, NULL) != pdPASS) {
+    //     printf("Failed to create Radio task\n");
+    //     while (1);
+    // }
 
     vTaskStartScheduler();
 

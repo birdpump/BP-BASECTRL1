@@ -2,7 +2,7 @@
 add_executable(${PROJECT_NAME}
         main.cpp
         tasks/led_task.cpp
-        tasks/radio_task.cpp
+        tasks/radio_tasks.cpp
         utils/encode_data.cpp
         utils/telemetry_radio.cpp
         config/hw_config.cpp
