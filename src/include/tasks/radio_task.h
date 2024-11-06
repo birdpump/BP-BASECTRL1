@@ -3,4 +3,6 @@
 
 void radioTask(void *pvParameters);
 
+void commandRadioTask(void *pvParameters);
+
 #endif
