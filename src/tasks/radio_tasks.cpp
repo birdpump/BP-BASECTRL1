@@ -180,6 +180,7 @@ void baseRadioTX(void *pvParameters) {
                         int state = radio.transmit(frame, sizeof(frame));
                         if (state == RADIOLIB_ERR_NONE) {
                             printf("LoRa transmission successful!\n");
+                            vTaskDelay(pdMS_TO_TICKS(80)); // sir just wait a moment, just wait a moment, just wait a moment
                         } else {
                             printf("LoRa transmission failed, code %d\n", state);
                         }
@@ -188,7 +189,7 @@ void baseRadioTX(void *pvParameters) {
             }
             xSemaphoreGive(xRadioMutex);
 
-            vTaskDelay(pdMS_TO_TICKS(10)); // Add a delay to avoid tight looping
+            vTaskDelay(pdMS_TO_TICKS(10));
         }
     }
 }
