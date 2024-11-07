@@ -3,6 +3,8 @@
 
 void initRadio();
 
+void initRadioTask(void *pvParameters);
+
 void baseRadioRX(void *pvParameters);
 
 void baseRadioTX(void *pvParameters);
