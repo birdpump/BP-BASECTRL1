@@ -42,10 +42,14 @@ SemaphoreHandle_t xinitSemaphore;
 SemaphoreHandle_t xPacketSemaphore;
 SemaphoreHandle_t xRadioMutex;
 
+volatile uint8_t loraMode;
+
 void setFlag() {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xSemaphoreGiveFromISR(xPacketSemaphore, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    if (loraMode == 0) {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        xSemaphoreGiveFromISR(xPacketSemaphore, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
 }
 
 uint8_t calculateChecksum(const uint8_t *buffer, size_t length) {
@@ -76,13 +80,13 @@ void initRadioTask(void *pvParameters) {
 
     printf("[Radio] Mutex Config Successful\n");
 
-//    xSemaphoreGive(xinitSemaphore);
+    //    xSemaphoreGive(xinitSemaphore);
 
     printf("[Radio] Mutex Config Successful\n");
 
     printf("[Radio] Starting tasks\n");
 
-//    xTaskCreate(baseRadioTX, "BaseRadioTX", 8192, NULL, 2, NULL);
+    //    xTaskCreate(baseRadioTX, "BaseRadioTX", 8192, NULL, 2, NULL);
     xTaskCreate(baseRadioRX, "BaseRadioRX", 8192, NULL, 1, NULL);
 
     printf("[Radio] Tasks started\n");
@@ -152,7 +156,6 @@ void baseRadioRX(void *pvParameters) {
             }
         }
     }
-
 }
 
 
@@ -162,6 +165,8 @@ void baseRadioTX(void *pvParameters) {
             if (uart_is_readable(UART_ID)) {
                 // Check for start byte to begin reading a new frame
                 if (uart_getc(UART_ID) == START_BYTE) {
+                    loraMode = 1;
+
                     uint8_t length = uart_getc(UART_ID); // Read the payload length
                     uint8_t type = uart_getc(UART_ID); // Read the message type
 
@@ -187,6 +192,8 @@ void baseRadioTX(void *pvParameters) {
                             gpio_put(PICO_DEFAULT_LED_PIN, 1);
                             vTaskDelay(pdMS_TO_TICKS(15));
                             gpio_put(PICO_DEFAULT_LED_PIN, 0);
+
+                            loraMode = 0;
                         } else {
                             printf("LoRa transmission failed, code %d\n", state);
                         }
@@ -199,4 +206,3 @@ void baseRadioTX(void *pvParameters) {
         }
     }
 }
-
