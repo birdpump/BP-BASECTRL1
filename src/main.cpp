@@ -67,6 +67,10 @@ void setup() {
     uart_init(UART_ID, BAUD_RATE);
     gpio_set_function(TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(RX_PIN, GPIO_FUNC_UART);
+
+    gpio_init(PICO_DEFAULT_LED_PIN);
+    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+
     initRadio();
 }
 
@@ -91,10 +95,10 @@ int main() {
 //        while (1);
 //    }
 
-    if (xTaskCreate(ledTask, "ledTask", 128, NULL, 1, NULL) != pdPASS) {
-        printf("Failed to create Radio task\n");
-        while (1);
-    }
+//    if (xTaskCreate(ledTask, "ledTask", 128, NULL, 1, NULL) != pdPASS) {
+//        printf("Failed to create Radio task\n");
+//        while (1);
+//    }
 
     vTaskStartScheduler();
 
