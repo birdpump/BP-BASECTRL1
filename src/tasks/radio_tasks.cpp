@@ -136,7 +136,7 @@ void baseRadioRX(void *pvParameters) {
                     }
 
                     // Decode payload if the message type matches
-                    if (type == COMMAND_TYPE) {
+                    if (type == TELEMETRY_TYPE) {
                         uart_putc(UART_ID, START_BYTE);
                         uart_putc(UART_ID, length);
                         uart_putc(UART_ID, TELEMETRY_TYPE);
