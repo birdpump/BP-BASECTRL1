@@ -80,10 +80,6 @@ void initRadioTask(void *pvParameters) {
 
     printf("[Radio] Mutex Config Successful\n");
 
-    //    xSemaphoreGive(xinitSemaphore);
-
-    printf("[Radio] Mutex Config Successful\n");
-
     printf("[Radio] Starting tasks\n");
 
     xTaskCreate(baseRadioTX, "BaseRadioTX", 8192, NULL, 2, NULL);
