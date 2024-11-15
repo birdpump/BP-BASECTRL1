@@ -161,7 +161,6 @@ void baseRadioTX(void *pvParameters) {
             if (uart_is_readable(UART_ID)) {
                 // Check for start byte to begin reading a new frame
                 if (uart_getc(UART_ID) == START_BYTE) {
-                    loraMode = 1;
 
                     uint8_t length = uart_getc(UART_ID); // Read the payload length
                     uint8_t type = uart_getc(UART_ID); // Read the message type
@@ -172,6 +171,8 @@ void baseRadioTX(void *pvParameters) {
                     uint8_t received_checksum = uart_getc(UART_ID); // Read the checksum byte
                     // Verify checksum before sending over LoRa
                     if (received_checksum == calculateChecksum(buffer, length)) {
+                        loraMode = 1;
+
                         // Construct the frame
                         uint8_t frame[3 + length + 1]; // start byte + length + type + payload + checksum
                         frame[0] = START_BYTE;
