@@ -145,8 +145,6 @@ void baseRadioRX(void *pvParameters) {
 
                 xSemaphoreGive(xRadioMutex);
             }
-            vTaskDelay(100);
-            xSemaphoreGive(xPacketSemaphore);
         }
     }
 }
