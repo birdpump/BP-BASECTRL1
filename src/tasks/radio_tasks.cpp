@@ -41,11 +41,14 @@ SX1262 radio = new Module(hal, RFM_NSS, RFM_DIO1, RFM_RST, RFM_DIO2);
 SemaphoreHandle_t xinitSemaphore;
 SemaphoreHandle_t xPacketSemaphore;
 SemaphoreHandle_t xRadioMutex;
+bool transmitActive = false;
 
 void setFlag() {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xSemaphoreGiveFromISR(xPacketSemaphore, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    if (!transmitActive) {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        xSemaphoreGiveFromISR(xPacketSemaphore, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
 }
 
 uint8_t calculateChecksum(const uint8_t *buffer, size_t length) {
@@ -65,33 +68,23 @@ void initRadio() {
 void initRadioTask(void *pvParameters) {
     printf("[Radio] Initializing Radio...\n");
     int state = radio.begin(902.5, 125.0, 8, 5, 0x36, 22, 14);
-    printf("[Radio] Radio Initialized...\n");
     if (state != RADIOLIB_ERR_NONE) {
         printf("[Radio] Initialization Failed, code %d\n", state);
         return;
     }
     printf("[Radio] Initialization Successful\n");
 
-    radio.setPacketReceivedAction(setFlag);
-
-    printf("[Radio] Mutex Config Successful\n");
-
-//    xSemaphoreGive(xinitSemaphore);
-
-    printf("[Radio] Mutex Config Successful\n");
+    radio.setDio1Action(setFlag);
 
     printf("[Radio] Starting tasks\n");
-
-//    xTaskCreate(baseRadioTX, "BaseRadioTX", 8192, NULL, 2, NULL);
+    xTaskCreate(baseRadioTX, "BaseRadioTX", 8192, NULL, 2, NULL);
     xTaskCreate(baseRadioRX, "BaseRadioRX", 8192, NULL, 1, NULL);
 
     printf("[Radio] Tasks started\n");
-
     vTaskDelete(NULL);
 }
 
 void baseRadioRX(void *pvParameters) {
-    printf("[Radio] Starting listener...\n");
     int state = radio.startReceive();
     if (state != RADIOLIB_ERR_NONE) {
         printf("[Radio] Listening Failed, code %d\n", state);
@@ -100,9 +93,11 @@ void baseRadioRX(void *pvParameters) {
 
     for (;;) {
         if (xSemaphoreTake(xPacketSemaphore, portMAX_DELAY) == pdTRUE) {
+            printf("[Radio Phase 1] Received data...\n");
             if (xSemaphoreTake(xRadioMutex, portMAX_DELAY) == pdTRUE) {
+                printf("[Radio Phase 2] Received data...n");
                 gpio_put(PICO_DEFAULT_LED_PIN, 1);
-                vTaskDelay(pdMS_TO_TICKS(15));
+                vTaskDelay(pdMS_TO_TICKS(10));
                 gpio_put(PICO_DEFAULT_LED_PIN, 0);
 
                 const size_t len = 80;
@@ -112,11 +107,11 @@ void baseRadioRX(void *pvParameters) {
                 int16_t state = radio.readData(data, len);
 
                 if (state == RADIOLIB_ERR_NONE) {
-                    printf("[Radio] Received data!\n");
+                    printf("[Radio] Received data... Begin Decoding\n");
 
                     // Validate the start byte
                     if (data[0] != START_BYTE) {
-                        printf("Invalid start byte\n");
+                        printf("[Proto] Invalid start byte\n");
                     }
 
                     // Extract length, type, and checksum from the received frame
@@ -150,9 +145,10 @@ void baseRadioRX(void *pvParameters) {
 
                 xSemaphoreGive(xRadioMutex);
             }
+            vTaskDelay(100);
+            xSemaphoreGive(xPacketSemaphore);
         }
     }
-
 }
 
 
@@ -162,6 +158,7 @@ void baseRadioTX(void *pvParameters) {
             if (uart_is_readable(UART_ID)) {
                 // Check for start byte to begin reading a new frame
                 if (uart_getc(UART_ID) == START_BYTE) {
+                    transmitActive = true;
                     uint8_t length = uart_getc(UART_ID); // Read the payload length
                     uint8_t type = uart_getc(UART_ID); // Read the message type
 
@@ -185,18 +182,26 @@ void baseRadioTX(void *pvParameters) {
                         if (state == RADIOLIB_ERR_NONE) {
                             printf("LoRa transmission successful!\n");
                             gpio_put(PICO_DEFAULT_LED_PIN, 1);
-                            vTaskDelay(pdMS_TO_TICKS(15));
+                            vTaskDelay(pdMS_TO_TICKS(10));
                             gpio_put(PICO_DEFAULT_LED_PIN, 0);
                         } else {
                             printf("LoRa transmission failed, code %d\n", state);
                         }
+
+                        transmitActive = false;
+
+                        int state2 = radio.startReceive();
+                        if (state2 != RADIOLIB_ERR_NONE) {
+                            printf("[Radio] Listening Failed, code %d\n", state2);
+                            return;
+                        }
                     }
                 }
             }
+
             xSemaphoreGive(xRadioMutex);
 
             vTaskDelay(pdMS_TO_TICKS(10));
         }
     }
 }
-
